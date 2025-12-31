@@ -1,0 +1,39 @@
+pipeline{
+    agent {label "cicd_helper"}
+    
+    stages{
+        stage("Code"){
+            steps{
+                echo "Cloning project"
+                git url: "https://github.com/Midhunmiyu/jenkins-django-test.git", branch:"master"
+                echo "Cloning Successful"
+            }
+        }
+        stage("Build"){
+            steps{
+                echo "Building Docker Image"
+                sh "docker build -t myapp:latest ."
+                echo "Docker build successful..."
+            }
+        }
+        stage("Push to DockerHub"){
+            steps{
+                withCredentials([usernamePassword(
+                    credentialsId:'dockerhub-cred',
+                    passwordVariable:'dockerpass',
+                    usernameVariable:'dockeruser')]){
+                        echo "Pushing Docker Image to DockerHub"
+                        sh "docker login -u ${env.dockeruser} -p ${env.dockerpass}"
+                        sh "docker image tag myapp:latest midhunmiyu/myapp:latest"
+                        sh "docker push ${env.dockeruser}/myapp:latest"
+                    }
+            }
+        }
+        stage("Deploy"){
+            steps{
+                echo "Deploying Docker Image"
+                sh "docker compose up -d"
+            }
+        }
+    }
+}
