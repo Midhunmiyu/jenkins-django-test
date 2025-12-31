@@ -1,0 +1,7 @@
+services:
+  web:
+   image: myapp:latest
+   container_name: myapp
+   ports:
+     - "8082:8082"
+    
